@@ -1,0 +1,159 @@
+/* ===== Global Styles & CSS Custom Properties ===== */
+:root {
+  /* VS Code Dark+ Theme Colors */
+  --bg-primary: #1e1e1e;
+  --bg-secondary: #252526;
+  --bg-tertiary: #2d2d2d;
+  --bg-hover: #2a2d2e;
+  --bg-active: #37373d;
+  --bg-selection: #264f78;
+  --bg-highlight: #0078d4;
+  --bg-input: #3c3c3c;
+  --bg-dropdown: #3c3c3c;
+
+  --titlebar-bg: #323233;
+  --titlebar-active: #1e1e1e;
+  --activitybar-bg: #333333;
+  --activitybar-fg: #ffffff;
+  --activitybar-inactive: rgba(255, 255, 255, 0.4);
+  --activitybar-badge: #007acc;
+  --sidebar-bg: #252526;
+  --sidebar-header-bg: #252526;
+  --editor-bg: #1e1e1e;
+  --panel-bg: #1e1e1e;
+  --panel-border: #414141;
+  --statusbar-bg: #007acc;
+  --statusbar-fg: #ffffff;
+  --statusbar-hover: rgba(255, 255, 255, 0.12);
+
+  --text-primary: #cccccc;
+  --text-secondary: #969696;
+  --text-muted: #6a6a6a;
+  --text-active: #ffffff;
+  --text-link: #4fc1ff;
+  --text-accent: #0078d4;
+
+  --border-color: #414141;
+  --border-active: #007acc;
+  --focus-border: #007acc;
+
+  --tab-bg: #2d2d2d;
+  --tab-active-bg: #1e1e1e;
+  --tab-active-border: #1e1e1e;
+  --tab-inactive-fg: #969696;
+  --tab-hover-bg: #2d2d2d;
+  --tab-border: #252526;
+
+  --scrollbar-bg: transparent;
+  --scrollbar-thumb: rgba(121, 121, 121, 0.4);
+  --scrollbar-thumb-hover: rgba(100, 100, 100, 0.7);
+
+  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', 'Consolas', 'Courier New', monospace;
+  --font-size: 13px;
+  --font-size-small: 11px;
+
+  --sidebar-width: 260px;
+  --activitybar-width: 48px;
+  --statusbar-height: 22px;
+  --titlebar-height: 30px;
+  --tab-height: 35px;
+  --panel-height: 200px;
+  --panel-tabs-height: 35px;
+
+  --transition-fast: 0.1s ease;
+  --transition-normal: 0.2s ease;
+  --border-radius: 4px;
+}
+
+/* Reset */
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-family);
+  font-size: var(--font-size);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#app {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Scrollbar styles */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--scrollbar-bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
+
+::-webkit-scrollbar-corner {
+  background: var(--bg-primary);
+}
+
+/* Utility */
+.hidden {
+  display: none !important;
+}
+
+.icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  border-radius: 3px;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.icon-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-active);
+}
+
+kbd {
+  display: inline-block;
+  padding: 2px 6px;
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--text-primary);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 3px;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2);
+}
+
+/* Selection highlight */
+::selection {
+  background: var(--bg-selection);
+  color: var(--text-active);
+}

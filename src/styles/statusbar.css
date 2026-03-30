@@ -1,0 +1,28 @@
+/* ===== Status Bar (additional styles) ===== */
+#statusbar {
+    font-family: var(--font-family);
+}
+
+.statusbar-left .status-item:first-child {
+    padding-left: 10px;
+}
+
+.statusbar-right .status-item:last-child {
+    padding-right: 10px;
+}
+
+/* Status bar remote indicator */
+.status-remote {
+    background: #16825d;
+    color: #fff;
+    font-weight: 500;
+}
+
+.status-remote:hover {
+    background: #1a9467 !important;
+}
+
+/* Notification dot */
+.status-notification {
+    position: relative;
+}
