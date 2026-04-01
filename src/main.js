@@ -475,13 +475,9 @@ class App {
 
     _toggleFlowGraph() {
         const isNowVisible = this.flowGraphPanel.toggle();
-        if (isNowVisible && this.editorManager.activeFile) {
-            const content = this.editorManager.getContent(this.editorManager.activeFile);
-            const tab = this.editorTabs.getTab(this.editorManager.activeFile);
-            const lang = tab ? this.editorManager.getLanguage(tab.filename) : 'javascript';
-            if (content) {
-                this.flowGraphPanel.analyze(content, lang);
-            }
+        if (isNowVisible) {
+            // Delay slightly to ensure editor layout is updated
+            setTimeout(() => this._analyzeCurrentFile(), 100);
         }
         // Re-layout Monaco editor after panel toggle
         requestAnimationFrame(() => this.editorManager.editor?.layout());
@@ -490,12 +486,24 @@ class App {
     _analyzeCurrentFile() {
         if (!this.flowGraphPanel.visible) return;
         if (!this.editorManager.activeFile) return;
-        const content = this.editorManager.getContent(this.editorManager.activeFile);
-        const tab = this.editorTabs.getTab(this.editorManager.activeFile);
-        const lang = tab ? this.editorManager.getLanguage(tab.filename) : 'javascript';
-        if (content) {
-            this.flowGraphPanel.analyze(content, lang);
+
+        // Try getting content from Monaco model first, fallback to FileSystem
+        let content = this.editorManager.getContent(this.editorManager.activeFile);
+        if (!content) {
+            content = this.fs.readFile(this.editorManager.activeFile);
         }
+        if (!content) return;
+
+        const tab = this.editorTabs.getTab(this.editorManager.activeFile);
+        const filename = tab ? tab.filename : this.editorManager.activeFile.split('/').pop();
+        const lang = this.editorManager.getLanguage(filename);
+        this.flowGraphPanel.analyze(content, lang);
+    }
+
+    _scheduleAnalysis() {
+        // Debounced re-analysis on content changes
+        clearTimeout(this._analysisTimer);
+        this._analysisTimer = setTimeout(() => this._analyzeCurrentFile(), 800);
     }
 
     _showFileContextMenu(node, x, y) {
@@ -766,11 +774,13 @@ class App {
                 this.statusLanguage.textContent = this.editorManager.getLanguageDisplay(tab.filename);
             }
             // Auto-analyze when a file is opened and flow graph is visible
-            this._analyzeCurrentFile();
+            setTimeout(() => this._analyzeCurrentFile(), 150);
         });
 
         this.editorManager.on('contentChanged', (path) => {
             this.editorTabs.setModified(path, true);
+            // Re-analyze on content changes (debounced)
+            this._scheduleAnalysis();
         });
     }
 
