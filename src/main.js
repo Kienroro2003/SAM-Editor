@@ -11,6 +11,7 @@ import './styles/editor.css';
 import './styles/terminal.css';
 import './styles/command-palette.css';
 import './styles/statusbar.css';
+import './styles/flow-graph.css';
 
 // Core
 import { FileSystem } from './core/FileSystem.js';
@@ -23,6 +24,7 @@ import { EditorTabs } from './components/EditorTabs.js';
 import { Terminal } from './components/Terminal.js';
 import { CommandPalette } from './components/CommandPalette.js';
 import { ContextMenu } from './components/ContextMenu.js';
+import { FlowGraphPanel } from './components/FlowGraphPanel.js';
 
 // Data
 import { sampleFiles } from './data/sampleFiles.js';
@@ -40,6 +42,7 @@ class App {
         this.terminal = null;
         this.commandPalette = null;
         this.contextMenu = null;
+        this.flowGraphPanel = null;
 
         // State
         this.sidebarVisible = true;
@@ -48,6 +51,7 @@ class App {
 
         // DOM elements
         this.editorArea = document.getElementById('editor-area');
+        this.editorMainArea = document.getElementById('editor-main-area');
         this.editorWelcome = document.getElementById('editor-welcome');
         this.sidebar = document.getElementById('sidebar');
         this.bottomPanel = document.getElementById('bottom-panel');
@@ -73,6 +77,7 @@ class App {
         this._initTerminal();
         this._initCommandPalette();
         this._initContextMenu();
+        this._initFlowGraph();
         this._initResizeHandles();
         this._initPanelTabs();
         this._initGlobalShortcuts();
@@ -412,6 +417,18 @@ class App {
                 }
             },
             {
+                label: 'View: Toggle Flow Graph',
+                keybinding: 'Ctrl + Shift + G',
+                action: () => this._toggleFlowGraph()
+            },
+            {
+                label: 'Analyze: Show Cyclomatic Complexity',
+                action: () => {
+                    if (!this.flowGraphPanel.visible) this._toggleFlowGraph();
+                    else this._analyzeCurrentFile();
+                }
+            },
+            {
                 label: 'Explorer: Collapse All Folders',
                 action: () => this.fileExplorer.collapseAll()
             },
@@ -431,6 +448,51 @@ class App {
 
     _initContextMenu() {
         this.contextMenu = new ContextMenu();
+    }
+
+    _initFlowGraph() {
+        this.flowGraphPanel = new FlowGraphPanel(
+            document.getElementById('flow-graph-panel')
+        );
+
+        // Jump to line when node is clicked
+        this.flowGraphPanel.on('nodeClicked', (line) => {
+            if (this.editorManager.editor) {
+                this.editorManager.editor.revealLineInCenter(line);
+                this.editorManager.editor.setPosition({ lineNumber: line, column: 1 });
+                this.editorManager.editor.focus();
+            }
+        });
+
+        // When panel is closed
+        this.flowGraphPanel.on('close', () => {
+            this.editorManager.editor?.layout();
+        });
+    }
+
+    _toggleFlowGraph() {
+        const isNowVisible = this.flowGraphPanel.toggle();
+        if (isNowVisible && this.editorManager.activeFile) {
+            const content = this.editorManager.getContent(this.editorManager.activeFile);
+            const tab = this.editorTabs.getTab(this.editorManager.activeFile);
+            const lang = tab ? this.editorManager.getLanguage(tab.filename) : 'javascript';
+            if (content) {
+                this.flowGraphPanel.analyze(content, lang);
+            }
+        }
+        // Re-layout Monaco editor after panel toggle
+        requestAnimationFrame(() => this.editorManager.editor?.layout());
+    }
+
+    _analyzeCurrentFile() {
+        if (!this.flowGraphPanel.visible) return;
+        if (!this.editorManager.activeFile) return;
+        const content = this.editorManager.getContent(this.editorManager.activeFile);
+        const tab = this.editorTabs.getTab(this.editorManager.activeFile);
+        const lang = tab ? this.editorManager.getLanguage(tab.filename) : 'javascript';
+        if (content) {
+            this.flowGraphPanel.analyze(content, lang);
+        }
     }
 
     _showFileContextMenu(node, x, y) {
@@ -700,6 +762,8 @@ class App {
             if (tab) {
                 this.statusLanguage.textContent = this.editorManager.getLanguageDisplay(tab.filename);
             }
+            // Auto-analyze when a file is opened and flow graph is visible
+            this._analyzeCurrentFile();
         });
 
         this.editorManager.on('contentChanged', (path) => {
@@ -764,6 +828,13 @@ class App {
             if (mod && e.shiftKey && e.key === 'P') {
                 e.preventDefault();
                 this.commandPalette.toggle();
+                return;
+            }
+
+            // Ctrl/Cmd + Shift + G — Toggle Flow Graph
+            if (mod && e.shiftKey && e.key === 'G') {
+                e.preventDefault();
+                this._toggleFlowGraph();
                 return;
             }
 

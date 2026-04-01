@@ -1,0 +1,262 @@
+/* ===== Flow Graph Panel ===== */
+#flow-graph-panel {
+    display: none;
+    flex-direction: column;
+    background: #0d1117;
+    border-left: 1px solid var(--border-color);
+    min-width: 0;
+    overflow: hidden;
+    transition: width 0.25s ease;
+}
+
+#flow-graph-panel.visible {
+    display: flex;
+    width: 480px;
+    flex-shrink: 0;
+}
+
+/* ── Toolbar ─────────────────────────────────────────────────── */
+.fg-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 36px;
+    padding: 0 10px;
+    background: #161b22;
+    border-bottom: 1px solid var(--border-color);
+    flex-shrink: 0;
+    gap: 8px;
+}
+
+.fg-toolbar-left,
+.fg-toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.fg-title {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.fg-select {
+    background: #21262d;
+    border: 1px solid #30363d;
+    color: #c9d1d9;
+    font-size: 12px;
+    font-family: 'Cascadia Code', 'Fira Code', monospace;
+    padding: 3px 8px;
+    border-radius: 4px;
+    outline: none;
+    cursor: pointer;
+    max-width: 180px;
+    transition: border-color 0.15s;
+}
+
+.fg-select:hover {
+    border-color: #58a6ff;
+}
+
+.fg-select:focus {
+    border-color: #58a6ff;
+    box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.2);
+}
+
+.fg-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    background: transparent;
+    border: none;
+    border-radius: 4px;
+    color: #8b949e;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+}
+
+.fg-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #e6edf3;
+}
+
+/* ── CC Badge ────────────────────────────────────────────────── */
+.fg-cc-badge {
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: 'Cascadia Code', monospace;
+    white-space: nowrap;
+    letter-spacing: 0.3px;
+}
+
+.fg-cc-low {
+    background: rgba(46, 160, 67, 0.2);
+    color: #7ee787;
+    border: 1px solid rgba(46, 160, 67, 0.4);
+}
+
+.fg-cc-moderate {
+    background: rgba(210, 153, 34, 0.2);
+    color: #e3b341;
+    border: 1px solid rgba(210, 153, 34, 0.4);
+}
+
+.fg-cc-high {
+    background: rgba(248, 81, 73, 0.2);
+    color: #ffa198;
+    border: 1px solid rgba(248, 81, 73, 0.4);
+}
+
+/* ── Canvas ──────────────────────────────────────────────────── */
+.fg-canvas-wrapper {
+    flex: 1;
+    overflow: hidden;
+    cursor: grab;
+    position: relative;
+    background:
+        radial-gradient(circle at 50% 50%, rgba(88, 166, 255, 0.03) 0%, transparent 70%),
+        linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+    background-size: 100% 100%, 20px 20px, 20px 20px;
+}
+
+.fg-svg {
+    transform-origin: 0 0;
+    transition: transform 0.1s ease-out;
+}
+
+/* ── Node hover effects ──────────────────────────────────────── */
+.fg-node {
+    transition: filter 0.15s ease;
+}
+
+.fg-node:hover {
+    filter: url(#glow) brightness(1.3);
+}
+
+.fg-node:hover rect,
+.fg-node:hover polygon {
+    stroke-width: 3;
+}
+
+/* ── Edge animations ─────────────────────────────────────────── */
+.fg-edge {
+    transition: opacity 0.2s;
+}
+
+.fg-svg:hover .fg-edge {
+    opacity: 0.4;
+}
+
+.fg-node:hover ~ .fg-edge {
+    opacity: 0.8;
+}
+
+/* ── Summary ─────────────────────────────────────────────────── */
+.fg-summary {
+    border-top: 1px solid var(--border-color);
+    padding: 8px 12px;
+    background: #161b22;
+    max-height: 150px;
+    overflow-y: auto;
+    flex-shrink: 0;
+}
+
+.fg-summary-title {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+}
+
+.fg-summary-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 0;
+    font-size: 12px;
+}
+
+.fg-summary-name {
+    color: #79c0ff;
+    font-family: 'Cascadia Code', 'Fira Code', monospace;
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.fg-summary-range {
+    color: #8b949e;
+    font-size: 11px;
+    font-family: 'Cascadia Code', monospace;
+}
+
+/* ── Empty State ─────────────────────────────────────────────── */
+.fg-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: #484f58;
+    font-size: 13px;
+    text-align: center;
+    padding: 20px;
+    gap: 8px;
+}
+
+.fg-empty svg {
+    opacity: 0.3;
+    margin-bottom: 8px;
+}
+
+/* ── Scrollbar ───────────────────────────────────────────────── */
+.fg-summary::-webkit-scrollbar {
+    width: 6px;
+}
+
+.fg-summary::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.fg-summary::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+}
+
+.fg-summary::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* ── Resize handle ───────────────────────────────────────────── */
+#fg-resize-handle {
+    width: 3px;
+    cursor: col-resize;
+    background: transparent;
+    position: relative;
+    z-index: 5;
+    flex-shrink: 0;
+    transition: background 0.15s;
+    display: none;
+}
+
+#flow-graph-panel.visible ~ #fg-resize-handle,
+#fg-resize-handle.active {
+    display: block;
+}
+
+#fg-resize-handle:hover,
+#fg-resize-handle.active {
+    background: var(--focus-border);
+}
