@@ -194,10 +194,11 @@
     flex-shrink: 0;
     margin-right: 2px;
     transition: transform var(--transition-fast);
+    transform: rotate(90deg);
 }
 
 .tree-item-arrow.collapsed {
-    transform: rotate(-90deg);
+    transform: rotate(0deg);
 }
 
 .tree-item-arrow.hidden {

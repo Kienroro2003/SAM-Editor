@@ -12,6 +12,7 @@ import './styles/terminal.css';
 import './styles/command-palette.css';
 import './styles/statusbar.css';
 import './styles/flow-graph.css';
+import './styles/folder-import.css';
 
 // Core
 import { FileSystem } from './core/FileSystem.js';
@@ -25,9 +26,7 @@ import { Terminal } from './components/Terminal.js';
 import { CommandPalette } from './components/CommandPalette.js';
 import { ContextMenu } from './components/ContextMenu.js';
 import { FlowGraphPanel } from './components/FlowGraphPanel.js';
-
-// Data
-import { sampleFiles } from './data/sampleFiles.js';
+import { FolderImporter } from './components/FolderImporter.js';
 
 class App {
     constructor() {
@@ -43,6 +42,7 @@ class App {
         this.commandPalette = null;
         this.contextMenu = null;
         this.flowGraphPanel = null;
+        this.folderImporter = new FolderImporter();
 
         // State
         this.sidebarVisible = true;
@@ -64,9 +64,6 @@ class App {
     }
 
     async init() {
-        // Load sample files
-        this.fs.loadTree(sampleFiles);
-
         // Initialize Monaco Editor
         await this._initMonaco();
 
@@ -82,6 +79,7 @@ class App {
         this._initPanelTabs();
         this._initGlobalShortcuts();
         this._initTitlebarSearch();
+        this._initFolderImport();
 
         // Connect editor events to status bar
         this._initStatusBar();
@@ -300,6 +298,11 @@ class App {
         this.commandPalette = new CommandPalette();
 
         this.commandPalette.registerCommands([
+            {
+                label: 'File: Open Folder',
+                keybinding: 'Ctrl + Shift + O',
+                action: () => this._openFolder()
+            },
             {
                 label: 'View: Toggle Sidebar Visibility',
                 keybinding: 'Ctrl + B',
@@ -838,6 +841,13 @@ class App {
                 return;
             }
 
+            // Ctrl/Cmd + Shift + O — Open Folder
+            if (mod && e.shiftKey && e.key === 'O') {
+                e.preventDefault();
+                this._openFolder();
+                return;
+            }
+
             // Ctrl/Cmd + B — Toggle Sidebar
             if (mod && e.key === 'b') {
                 e.preventDefault();
@@ -900,6 +910,117 @@ class App {
         document.getElementById('titlebar-search-btn').addEventListener('click', () => {
             this.commandPalette.open();
         });
+    }
+
+    /* ─── Folder Import ─── */
+
+    _initFolderImport() {
+        const dropOverlay = document.getElementById('drop-overlay');
+        const folderInput = document.getElementById('folder-input');
+        const importLoading = document.getElementById('import-loading');
+        const importLoadingText = document.getElementById('import-loading-text');
+        const btnOpenFolder = document.getElementById('btn-open-folder');
+
+        // "Open Folder" button on welcome screen
+        btnOpenFolder.addEventListener('click', () => this._openFolder());
+
+        // Folder input fallback (for browsers without showDirectoryPicker)
+        folderInput.addEventListener('change', async (e) => {
+            const result = await this.folderImporter.importViaInput(e.target.files);
+            if (result) {
+                this._handleImportResult(result);
+            }
+            folderInput.value = ''; // Reset so the same folder can be re-selected
+        });
+
+        // FolderImporter events
+        this.folderImporter.on('importStart', (name) => {
+            importLoading.classList.add('active');
+            importLoadingText.textContent = `Importing ${name}...`;
+        });
+
+        this.folderImporter.on('importComplete', () => {
+            importLoading.classList.remove('active');
+        });
+
+        this.folderImporter.on('importError', (err) => {
+            importLoading.classList.remove('active');
+            console.error('Import failed:', err);
+        });
+
+        // Drag-and-drop on the whole window
+        let dragCounter = 0;
+
+        document.addEventListener('dragenter', (e) => {
+            e.preventDefault();
+            dragCounter++;
+            dropOverlay.classList.add('active');
+        });
+
+        document.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            dragCounter--;
+            if (dragCounter <= 0) {
+                dragCounter = 0;
+                dropOverlay.classList.remove('active');
+            }
+        });
+
+        document.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'copy';
+        });
+
+        document.addEventListener('drop', async (e) => {
+            e.preventDefault();
+            dragCounter = 0;
+            dropOverlay.classList.remove('active');
+
+            const result = await this.folderImporter.importViaDrop(e.dataTransfer);
+            if (result) {
+                this._handleImportResult(result);
+            }
+        });
+    }
+
+    async _openFolder() {
+        if (this.folderImporter.supportsFileSystemAPI) {
+            const result = await this.folderImporter.importViaFileSystemAPI();
+            if (result) {
+                this._handleImportResult(result);
+            }
+        } else {
+            // Trigger the hidden file input as fallback
+            document.getElementById('folder-input').click();
+        }
+    }
+
+    _handleImportResult({ name, tree }) {
+        // Close all open editor tabs
+        this.editorManager.getOpenFiles().forEach(path => {
+            this.editorTabs.removeTab(path);
+            this.editorManager.closeFile(path);
+        });
+
+        // Reset editor view
+        this.editorArea.classList.remove('active');
+        this.editorWelcome.classList.add('hidden');
+
+        // Clear existing tree and load the new one
+        this.fs.clearTree();
+        this.fs.setRootName(name);
+        this.fs.loadTree(tree);
+
+        // Re-render file explorer
+        this.fileExplorer.expandedDirs.clear();
+        this.fileExplorer.expandedDirs.add('/');
+        this.fileExplorer.render();
+
+        // Show sidebar if hidden
+        if (!this.sidebarVisible) {
+            this.sidebarVisible = true;
+            this.sidebar.classList.remove('collapsed');
+        }
     }
 }
 
