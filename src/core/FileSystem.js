@@ -202,6 +202,22 @@ export class FileSystem extends EventEmitter {
     }
 
     /**
+     * Clear the entire file tree (reset to empty root).
+     */
+    clearTree() {
+        this.root.children = [];
+        this.emit('treeCleared');
+    }
+
+    /**
+     * Set the root folder display name.
+     */
+    setRootName(name) {
+        this.root.name = name;
+        this.emit('rootRenamed', name);
+    }
+
+    /**
      * Load a tree structure into the file system.
      */
     loadTree(tree, parentPath = '') {
@@ -215,6 +231,10 @@ export class FileSystem extends EventEmitter {
             } else {
                 this.createFile(itemPath, item.content || '');
             }
+        }
+        // Emit treeLoaded only at the top-level call
+        if (!parentPath) {
+            this.emit('treeLoaded');
         }
     }
 

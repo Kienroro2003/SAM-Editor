@@ -1,0 +1,180 @@
+/* ─── Folder Import Styles ─── */
+
+/* Drop overlay — full screen when dragging a folder over the window */
+.drop-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    background: rgba(0, 120, 212, 0.12);
+    border: 3px dashed rgba(0, 120, 212, 0.6);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    backdrop-filter: blur(2px);
+    transition: background 0.2s ease;
+}
+
+.drop-overlay.active {
+    display: flex;
+}
+
+.drop-overlay-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    padding: 40px 60px;
+    background: rgba(30, 30, 30, 0.92);
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.drop-overlay-icon {
+    color: #0078d4;
+    opacity: 0.9;
+    animation: dropBounce 1.5s ease infinite;
+}
+
+@keyframes dropBounce {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-8px);
+    }
+}
+
+.drop-overlay-text {
+    color: #ccc;
+    font-size: 1.1rem;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+}
+
+/* Welcome Import Screen — shown when no folder is loaded */
+.welcome-import {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+    margin-top: 32px;
+}
+
+.welcome-import-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 28px;
+    background: #0078d4;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    letter-spacing: 0.3px;
+    box-shadow: 0 4px 12px rgba(0, 120, 212, 0.3);
+}
+
+.welcome-import-btn:hover {
+    background: #1a8ae8;
+    box-shadow: 0 6px 20px rgba(0, 120, 212, 0.4);
+    transform: translateY(-1px);
+}
+
+.welcome-import-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(0, 120, 212, 0.3);
+}
+
+.welcome-import-btn svg {
+    flex-shrink: 0;
+}
+
+.welcome-import-hint {
+    color: #666;
+    font-size: 0.82rem;
+    font-weight: 400;
+    letter-spacing: 0.2px;
+}
+
+.welcome-import-hint kbd {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 3px;
+    padding: 2px 6px;
+    font-size: 0.75rem;
+    font-family: inherit;
+    color: #aaa;
+}
+
+/* Import loading state */
+.import-loading {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    margin-top: 32px;
+}
+
+.import-loading.active {
+    display: flex;
+}
+
+.import-spinner {
+    width: 36px;
+    height: 36px;
+    border: 3px solid rgba(0, 120, 212, 0.2);
+    border-top-color: #0078d4;
+    border-radius: 50%;
+    animation: importSpin 0.8s linear infinite;
+}
+
+@keyframes importSpin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.import-loading-text {
+    color: #999;
+    font-size: 0.88rem;
+    font-weight: 400;
+}
+
+/* Hidden input for webkitdirectory fallback */
+#folder-input {
+    display: none;
+}
+
+/* Sidebar open folder button */
+.sidebar-open-folder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: calc(100% - 16px);
+    margin: 8px;
+    padding: 6px 12px;
+    background: rgba(0, 120, 212, 0.15);
+    color: #3794e6;
+    border: 1px solid rgba(0, 120, 212, 0.25);
+    border-radius: 4px;
+    font-size: 0.78rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.sidebar-open-folder:hover {
+    background: rgba(0, 120, 212, 0.25);
+    border-color: rgba(0, 120, 212, 0.4);
+}
