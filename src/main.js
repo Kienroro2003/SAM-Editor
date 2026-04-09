@@ -23,6 +23,9 @@ import { EditorTabs } from './components/EditorTabs.js';
 import { Terminal } from './components/Terminal.js';
 import { CommandPalette } from './components/CommandPalette.js';
 import { ContextMenu } from './components/ContextMenu.js';
+import { AnalyzeToolbar } from './components/AnalyzeToolbar/AnalyzeToolbar.js';
+import { RightPanel } from './components/RightPanel/RightPanel.js';
+import { CoveragePanel } from './components/CoveragePanel/CoveragePanel.js';
 
 // Data
 import { sampleFiles } from './data/sampleFiles.js';
@@ -40,15 +43,28 @@ class App {
         this.terminal = null;
         this.commandPalette = null;
         this.contextMenu = null;
+        this.analyzeToolbar = null;
+        this.rightPanel = null;
+        this.coveragePanel = null;
+        this.rightPanelHost = null;
 
         // State
         this.sidebarVisible = true;
         this.panelVisible = true;
         this.panelMaximized = false;
 
+        // SAM analysis state
+        this.isRightPanelVisible = false;
+        this.isAnalyzing = false;
+        this.loadedCode = '';
+        this.loadedFilename = '';
+        this.analysisResult = null;
+        this.rightPanelWidth = 380;
+
         // DOM elements
         this.editorArea = document.getElementById('editor-area');
         this.editorWelcome = document.getElementById('editor-welcome');
+        this.editorContainer = document.getElementById('editor-container');
         this.sidebar = document.getElementById('sidebar');
         this.bottomPanel = document.getElementById('bottom-panel');
         this.statusCursor = document.getElementById('status-cursor');
@@ -71,6 +87,7 @@ class App {
         this._initFileExplorer();
         this._initEditorTabs();
         this._initTerminal();
+        this._initSamAnalysisUI();
         this._initCommandPalette();
         this._initContextMenu();
         this._initResizeHandles();
@@ -141,8 +158,195 @@ class App {
                 this._updateSidebarTitle(id);
             } else if (id === 'settings') {
                 this.commandPalette.open();
+            } else if (id === 'sam-analysis') {
+                this._toggleRightPanel();
             }
         });
+    }
+
+    _initSamAnalysisUI() {
+        // Analyze toolbar injected directly above Monaco editor (below the tab bar)
+        const tabsEl = document.getElementById('editor-tabs');
+        const toolbarHost = document.createElement('div');
+        toolbarHost.id = 'analyze-toolbar-host';
+        toolbarHost.style.flexShrink = '0';
+        tabsEl?.insertAdjacentElement('afterend', toolbarHost);
+
+        this.analyzeToolbar = new AnalyzeToolbar(toolbarHost, {
+            onAnalyze: (code, filename, language) => this._runMockAnalysis(code, filename, language),
+            onCodeLoad: (code, filename, language) => this._onCodeLoad(code, filename, language),
+            isAnalyzing: () => this.isAnalyzing
+        });
+
+        // Right panel (absolute overlay that offsets Monaco via margin-right)
+        const rpHost = document.createElement('div');
+        rpHost.id = 'sam-right-panel';
+        this.editorContainer.style.position = 'relative';
+        this.editorContainer.appendChild(rpHost);
+        this.rightPanelHost = rpHost;
+
+        this.rightPanel = new RightPanel(rpHost, {
+            testCases: [],
+            suggestions: [],
+            isVisible: false,
+            onClose: () => this._hideRightPanel(),
+            onWidthChange: (w) => {
+                this.rightPanelWidth = w;
+                if (this.isRightPanelVisible) this._applyRightPanelLayout();
+            }
+        });
+
+        // Coverage panel view in bottom panel
+        const covEl = document.getElementById('coverage-container');
+        if (covEl) {
+            this.coveragePanel = new CoveragePanel(covEl);
+        }
+    }
+
+    _onCodeLoad(code, filename, language) {
+        this.loadedCode = code;
+        this.loadedFilename = filename;
+
+        // Open as a virtual in-memory file (does not touch workspace FileSystem)
+        const virtualPath = `/__import__/${filename}`;
+        this.editorManager.openFile(virtualPath, code, filename);
+        this.editorTabs.addTab(virtualPath, filename);
+
+        // Show editor, hide welcome (same behavior as normal file open)
+        this.editorArea.classList.add('active');
+        this.editorWelcome.classList.add('hidden');
+        this.statusLanguage.textContent = this.editorManager.getLanguageDisplay(filename);
+    }
+
+    _toggleRightPanel() {
+        this.isRightPanelVisible = !this.isRightPanelVisible;
+        this.rightPanel?.setVisible(this.isRightPanelVisible);
+        this.activityBar?.setSamAnalysisActive(this.isRightPanelVisible);
+        this._applyRightPanelLayout();
+    }
+
+    _showRightPanel() {
+        this.isRightPanelVisible = true;
+        this.rightPanel?.setVisible(true);
+        this.activityBar?.setSamAnalysisActive(true);
+        this._applyRightPanelLayout();
+    }
+
+    _hideRightPanel() {
+        this.isRightPanelVisible = false;
+        this.rightPanel?.setVisible(false);
+        this.activityBar?.setSamAnalysisActive(false);
+        this._applyRightPanelLayout();
+    }
+
+    _applyRightPanelLayout() {
+        const mr = this.isRightPanelVisible ? `${this.rightPanelWidth}px` : '0px';
+        this.editorArea.style.marginRight = mr;
+        const welcome = document.getElementById('editor-welcome');
+        const tabs = document.getElementById('editor-tabs');
+        const toolbar = document.getElementById('analyze-toolbar-host');
+        if (welcome) welcome.style.marginRight = mr;
+        if (tabs) tabs.style.marginRight = mr;
+        if (toolbar) toolbar.style.marginRight = mr;
+
+        if (this.rightPanelHost) {
+            const bottomOffset = (this.panelVisible && !this.bottomPanel.classList.contains('collapsed'))
+                ? `${this.bottomPanel.offsetHeight}px`
+                : '0px';
+            this.rightPanelHost.style.bottom = bottomOffset;
+        }
+        requestAnimationFrame(() => {
+            try { this.editorManager?.editor?.layout(); } catch (e) { /* ignore */ }
+        });
+    }
+
+    _activateBottomPanelTab(panelId) {
+        const panelTabs = document.querySelectorAll('.panel-tab');
+        const panelViews = document.querySelectorAll('.panel-view');
+
+        panelTabs.forEach(tab => tab.classList.toggle('active', tab.dataset.panel === panelId));
+        panelViews.forEach(v => v.classList.toggle('active', v.id === `${panelId}-container`));
+
+        if (panelId === 'terminal') {
+            requestAnimationFrame(() => this.terminal.fit());
+        }
+    }
+
+    _runMockAnalysis(code, filename, language) {
+        if (!filename || !code) return;
+        if (this.isAnalyzing) return;
+
+        this.isAnalyzing = true;
+        this.coveragePanel?.setAnalyzing(true);
+
+        const MOCK_RESULT = {
+            metrics: {
+                statement: 72,
+                branch: 58,
+                function: 85,
+                cyclomaticComplexity: 12,
+                analyzedAt: new Date().toISOString(),
+                filename: this.loadedFilename,
+            },
+            testCases: [
+                {
+                    id: '1',
+                    title: 'should return null when input is empty',
+                    pathLabel: 'Path 1 → false branch',
+                    code: 'test(\"should return null when input is empty\", () => {\\n  expect(myFunc(\"\")).toBeNull();\\n});',
+                },
+                {
+                    id: '2',
+                    title: 'should handle valid user object',
+                    pathLabel: 'Path 2 → true branch',
+                    code: 'test(\"should handle valid user object\", () => {\\n  const result = myFunc({ id: 1 });\\n  expect(result).toBeDefined();\\n});',
+                },
+                {
+                    id: '3',
+                    title: 'should throw on null input',
+                    pathLabel: 'Path 3 → exception path',
+                    code: 'test(\"should throw on null input\", () => {\\n  expect(() => myFunc(null)).toThrow();\\n});',
+                },
+            ],
+            suggestions: [
+                {
+                    id: '1',
+                    severity: 'high',
+                    title: 'Untested branch in handleLogin()',
+                    description: 'The false branch of the authentication check is never covered. Add a test for failed login scenarios.',
+                    line: 42,
+                },
+                {
+                    id: '2',
+                    severity: 'medium',
+                    title: 'Missing edge case in validateEmail()',
+                    description: 'No test covers empty string or null input for this function.',
+                    line: 17,
+                },
+                {
+                    id: '3',
+                    severity: 'low',
+                    title: 'Redundant condition on line 88',
+                    description: 'This condition is always true based on prior guards. Consider simplifying.',
+                    line: 88,
+                },
+            ],
+        };
+
+        window.setTimeout(() => {
+            this.analysisResult = MOCK_RESULT;
+            this.isAnalyzing = false;
+
+            this.rightPanel?.setData({
+                testCases: MOCK_RESULT.testCases,
+                suggestions: MOCK_RESULT.suggestions
+            });
+            this.coveragePanel?.setMetrics(MOCK_RESULT.metrics);
+            this.coveragePanel?.setAnalyzing(false);
+
+            this._showRightPanel();
+            this._activateBottomPanelTab('coverage');
+        }, 1500);
     }
 
     _updateSidebarTitle(id) {
@@ -259,6 +463,7 @@ class App {
         document.getElementById('btn-panel-close').addEventListener('click', () => {
             this.panelVisible = false;
             this.bottomPanel.classList.add('collapsed');
+            this._applyRightPanelLayout();
         });
 
         // Panel maximize
@@ -270,6 +475,7 @@ class App {
                 this.bottomPanel.style.height = '';
             }
             this.terminal.fit();
+            this._applyRightPanelLayout();
         });
     }
 
@@ -753,6 +959,7 @@ class App {
         if (this.panelVisible) {
             requestAnimationFrame(() => this.terminal.fit());
         }
+        this._applyRightPanelLayout();
     }
 
     _initGlobalShortcuts() {

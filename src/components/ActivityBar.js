@@ -47,6 +47,12 @@ export class ActivityBar {
             <path d="M13.5 1.5L15 0h7.5L24 1.5V9l-1.5 1.5H15L13.5 9V1.5zM15 9h7.5V1.5H15V9zM0 15l1.5-1.5H9L10.5 15v7.5L9 24H1.5L0 22.5V15zm1.5 7.5H9V15H1.5v7.5zM13.5 15l1.5-1.5h7.5L24 15v7.5L22.5 24H15l-1.5-1.5V15zM15 22.5h7.5V15H15v7.5zM0 1.5L1.5 0H9l1.5 1.5V9L9 10.5H1.5L0 9V1.5zM1.5 9H9V1.5H1.5V9z"/>
           </svg>
         </button>
+        <button class="activity-item" data-id="sam-analysis" title="SAM Analysis">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M9 2h6v2h-1v5.586l4.707 7.06A3 3 0 0 1 16.21 21H7.79a3 3 0 0 1-2.497-4.354L10 9.586V4H9V2zm3 10.236-5.04 7.56A1 1 0 0 0 7.79 20h8.42a1 1 0 0 0 .832-1.56L12 12.236z" opacity="0.95"/>
+            <path d="M8.5 14.5h7v1.5h-7z" opacity="0.5"/>
+          </svg>
+        </button>
       </div>
       <div class="activity-bar-bottom">
         <button class="activity-item" data-id="account" title="Account">
@@ -66,7 +72,9 @@ export class ActivityBar {
         this.container.querySelectorAll('.activity-item').forEach(item => {
             item.addEventListener('click', () => {
                 const id = item.dataset.id;
-                this.setActive(id);
+                if (id !== 'sam-analysis') {
+                    this.setActive(id);
+                }
                 this.emit('itemClicked', id);
             });
         });
@@ -77,5 +85,10 @@ export class ActivityBar {
             item.classList.toggle('active', item.dataset.id === id);
         });
         this.activeItem = id;
+    }
+
+    setSamAnalysisActive(active) {
+        const btn = this.container.querySelector('.activity-item[data-id="sam-analysis"]');
+        if (btn) btn.classList.toggle('active', !!active);
     }
 }

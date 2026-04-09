@@ -1,0 +1,273 @@
+.panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: var(--bottom-panel-offset, 0px);
+  background: #252526;
+  border-left: 1px solid #3e3e42;
+  transform: translateX(100%);
+  transition: all 0.15s ease;
+  display: flex;
+  flex-direction: column;
+  z-index: 8;
+}
+
+.visible {
+  transform: translateX(0);
+}
+
+.handle {
+  position: absolute;
+  left: -2px;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  cursor: col-resize;
+  background: transparent;
+  transition: all 0.15s ease;
+}
+
+.handle:hover {
+  background: #0078d4;
+  opacity: 0.8;
+}
+
+.header {
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 10px;
+  background: #2d2d2d;
+  border-bottom: 1px solid #3e3e42;
+}
+
+.headerTitle {
+  font-size: 12px;
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.closeBtn {
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  color: #cccccc;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.15s ease;
+}
+
+.closeBtn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+}
+
+.tabs {
+  display: flex;
+  gap: 6px;
+  padding: 8px 10px;
+  border-bottom: 1px solid #3e3e42;
+}
+
+.tabBtn {
+  flex: 1;
+  height: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: #2d2d2d;
+  color: #cccccc;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.15s ease;
+}
+
+.tabBtn:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.active {
+  border-color: rgba(0, 120, 212, 0.9);
+  color: #ffffff;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 6px;
+  background: #3e3e42;
+  color: #d4d4d4;
+  border-radius: 999px;
+  font-size: 11px;
+  line-height: 1;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 10px 8px;
+}
+
+.sectionTitle {
+  font-size: 12px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.list {
+  flex: 1;
+  overflow: auto;
+  padding: 0 10px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.empty {
+  flex: 1;
+  min-height: 240px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: #858585;
+  text-align: center;
+}
+
+.emptyIcon {
+  font-size: 22px;
+  opacity: 0.9;
+}
+
+.emptyText {
+  font-size: 12px;
+  max-width: 260px;
+}
+
+.card {
+  background: #2d2d2d;
+  border: 1px solid #3e3e42;
+  border-radius: 6px;
+  padding: 10px;
+  transition: all 0.15s ease;
+}
+
+.cardTitle {
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.cardSub {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #858585;
+}
+
+.codeWrap {
+  margin-top: 10px;
+  background: #1a1a1a;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  position: relative;
+  overflow: hidden;
+}
+
+.copyBtn {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #d4d4d4;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.copyBtn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+}
+
+.pre {
+  margin: 0;
+  padding: 32px 10px 10px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 12px;
+  color: #d4d4d4;
+  max-height: 120px;
+  overflow: auto;
+  white-space: pre;
+}
+
+.sugRow {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.sev {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 18px;
+  padding: 0 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #111827;
+  flex-shrink: 0;
+}
+
+.sevHigh { background: #f87171; }
+.sevMedium { background: #facc15; }
+.sevLow { background: #60a5fa; }
+
+.sugMain {
+  flex: 1;
+}
+
+.sugDesc {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #858585;
+  line-height: 1.35;
+}
+
+.sugFooter {
+  margin-top: 10px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.lineChip {
+  background: #3e3e42;
+  color: #858585;
+  border-radius: 999px;
+  height: 20px;
+  padding: 0 8px;
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+}
+
