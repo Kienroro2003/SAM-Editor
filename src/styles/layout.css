@@ -110,6 +110,14 @@
     position: relative;
 }
 
+/* Content area wrapper — fills remaining space beside sidebar */
+#content-area {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    overflow: hidden;
+}
+
 /* ===== Status Bar ===== */
 #statusbar {
     display: flex;
