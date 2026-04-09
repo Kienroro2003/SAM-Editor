@@ -1,0 +1,11 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const router = (0, express_1.Router)();
+router.post('/', (_req, res) => {
+    res.status(501).json({
+        success: false,
+        error: 'Not Implemented',
+    });
+});
+exports.default = router;
